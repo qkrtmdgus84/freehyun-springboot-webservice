@@ -16,9 +16,13 @@ cache: #그레이들을 통해 의존성을 받게 되면 이를 해당 디렉�
 script: "./gradlew clean build"
 
 before_deploy: #deploy 명령어가 실행되기 전에 수행, CodeDeploy 는 Jar 파일을 인식하지 못하므로 Jar+ 기타 설정 파일들을 모아 압축(zip)
-  - zip -r freehyun-springboot-webservice *
-  - mkdir -p deploy # zip 에 포함시킬 파일들을 담을 디렉토리 생성
-  - mv freehyun-springboot-webservice.zip deploy/freehyun-springboot-webservice.zip # deploy로 zip파일 이동
+  - mkdir -p before-deploy # zip 에 포함시킬 파일들을 담을 디렉토리 생성 //1.
+  - cp scripts/*.sh before-deploy/ #//2.
+  - cp appspec.yml before-deploy/
+  - cp build/libs/*.jar before-deploy/
+  - cd before-deploy && zip -r before-deploy * # before-deploy로 이동후 전체 압축 #//3.
+  - cd ../ && mkdir -p deploy # 상위 디렉토리로 이동후 deploy 디렉토리 생성
+  - mv before-deploy/before-deploy.zip deploy/freehyun-springboot-webservice.zip # deploy로 zip파일 이동
 deploy:
   - provider: s3
     access_key_id: $AWS_ACCESS_KEY # Travis repo settings 에 설정된 값
